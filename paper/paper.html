@@ -5,8 +5,149 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="Abdullah Goraya (University of Houston)" />
-  <title>Open When Oil Is Closed</title>
+  <title>paper</title>
   <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -23,38 +164,32 @@
     }
     .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
-  <link rel="stylesheet" href="" />
 </head>
 <body>
-<header id="title-block-header">
-<h1 class="title">Open When Oil Is Closed</h1>
-<p class="author">Abdullah Goraya (University of Houston)</p>
-<p class="date">October 2026 (working paper, v0.1)</p>
-</header>
 <h2 id="abstract">Abstract</h2>
 <p>Do prediction markets lead conventional financial markets on
-geopolitical events? Using minute-level prices for 67 Polymarket
+geopolitical events? Using minute-level prices for 81 Polymarket
 contracts on the US-Iran conflict, the Strait of Hormuz, Russia-Ukraine,
-Israel, Taiwan and tariffs (July 2024 to October 2026, $3.6 billion in
-volume) and minute bars for oil, energy, defense, Treasury, gold and
-equity ETFs, I find that the answer depends on whether both venues are
-open. When US ETFs are closed, the move in Polymarket’s odds on Iran and
-Hormuz contracts predicts the oil ETF’s gap at the next open (USO t =
-4.4 over 445 closures with errors clustered by closure; overnight and
-weekend closures replicate separately; control contracts and a shuffle
-placebo are null). When both venues are trading, the direction reverses:
-oil has moved 42 basis points in the 15 minutes before a Polymarket jump
-(t = 6.3) against 12 basis points in the 30 minutes after, and Granger
-tests run from oil to Polymarket in 24 percent of contract pairs against
-8 percent in the other direction, with a cross-correlation peak at a 3
-minute oil lead. The reopen gap is realized at the opening print; a rule
-that follows closed-hours jumps into USO at the open loses 15 basis
-points per trade. Prediction markets are not faster than oil futures.
-They are open when oil futures are not. This reconciles the
-election-night lead reported by Aktug and Torul (2026) with the weak
-daily transmission in Azqueta-Gavaldón and Ureta (2026): the lead is a
-trading-hours effect and the transmission is concentrated in the first
-minute after the open.</p>
+Israel, Venezuela, Taiwan and tariffs (2024 to October 2026, $3.1
+billion in volume) and minute bars for oil, energy, defense, Treasury,
+gold and equity ETFs, I find that the answer depends on whether both
+venues are open. When US ETFs are closed, the move in Polymarket’s odds
+on Iran and Hormuz contracts predicts the oil ETF’s gap at the next open
+(USO t = 4.5 over 445 closures with errors clustered by closure;
+overnight and weekend closures replicate separately; control contracts
+and a shuffle placebo are null). When both venues are trading, the
+direction reverses: oil has moved 42 basis points in the 15 minutes
+before a Polymarket jump (t = 6.3) against 12 basis points in the 30
+minutes after, and Granger tests run from oil to Polymarket in 24
+percent of contract pairs against 8 percent in the other direction, with
+a cross-correlation peak at a 3 minute oil lead. The reopen gap is
+realized at the opening print; a rule that follows closed-hours jumps
+into USO at the open loses 15 basis points per trade. Prediction markets
+are not faster than oil futures. They are open when oil futures are not.
+This reconciles the election-night lead reported by Aktug and Torul
+(2026) with the weak daily transmission in Azqueta-Gavaldón and Ureta
+(2026): the lead is a trading-hours effect and the transmission is
+concentrated in the first minute after the open.</p>
 <h2 id="introduction">1. Introduction</h2>
 <p>Polymarket settled $54 billion of contracts between 2021 and early
 2026, and during the 2026 US-Iran war its contracts on strikes,
@@ -78,8 +213,8 @@ transmission to energy equities is statistically weak. If the first
 paper is right, the second should have found something. One way to
 reconcile them is that the lead exists but lives inside the day, in the
 hours when one venue trades and the other does not.</p>
-<p>This paper tests that directly. I assemble 67 Polymarket contracts on
-geopolitical events, grouped into 40 distinct event clusters, with
+<p>This paper tests that directly. I assemble 81 Polymarket contracts on
+geopolitical events, grouped into 50 distinct event clusters, with
 minute-resolution price histories, and align them with minute bars for
 nine ETFs. Four designs separate the closed-hours case from the
 open-hours case. The closed-hours design regresses each ETF’s reopen
@@ -100,14 +235,14 @@ that they are open.</p>
 <h3 id="polymarket-contracts">2.1 Polymarket contracts</h3>
 <p>Contracts were selected from the Polymarket Gamma API by topic tag
 (geopolitics, tariffs, Ukraine, Venezuela, oil) and ranked by volume.
-The sample contains 67 contracts with a plausible link to a traded asset
-and 9 control contracts (sports championships, entertainment releases)
+The sample contains 81 contracts with a plausible link to a traded asset
+and 10 control contracts (sports championships, entertainment releases)
 with no such link, chosen to have comparable volume and timing. Table A1
 lists every contract. Many contracts are “ladder” siblings that ask the
 same question with different deadlines (“US strikes Iran by January 31”,
 “by February 28”); for inference these are grouped into event clusters
 defined by category, direction and the first three words of the
-question, giving 40 clusters among treated contracts.</p>
+question, giving 50 clusters among treated contracts.</p>
 <p>Each contract is assigned an escalation sign: +1 if YES means more
 conflict or supply disruption, -1 if YES means a ceasefire, a deal or
 traffic returning to normal. Asset hypothesis signs are the product of
@@ -141,9 +276,9 @@ results use the empirical session, treating any minute with a bar as
 open. A robustness run restricts to the regular session (09:30 to 16:00
 ET), which makes every overnight a closure.</p>
 <h3 id="summary">2.3 Summary</h3>
-<p>Treated contracts produce 3,517 jumps by the detector described
+<p>Treated contracts produce 4,367 jumps by the detector described
 below, of which 72 percent occur while the ETFs are closed under the
-extended-hours definition. The 338 jumps of ten points or more are
+extended-hours definition. The 430 jumps of ten points or more are
 listed in the replication package with a template for headline
 timestamps (Section 6).</p>
 <h2 id="designs">3. Designs</h2>
@@ -227,93 +362,108 @@ cluster per closure. Standard errors clustered by closure.</p>
 <tr class="even">
 <td>USO</td>
 <td></td>
-<td>1757</td>
+<td>2305</td>
 <td>466</td>
-<td><strong>4.17</strong></td>
-<td>1687</td>
+<td><strong>4.06</strong></td>
+<td>2204</td>
 <td>445</td>
-<td><strong>4.38</strong></td>
+<td><strong>4.47</strong></td>
 </tr>
 <tr class="odd">
 <td>XLE</td>
 <td></td>
-<td>1836</td>
+<td>2426</td>
 <td>485</td>
-<td><strong>4.06</strong></td>
-<td>1687</td>
+<td><strong>3.75</strong></td>
+<td>2204</td>
 <td>445</td>
-<td><strong>4.04</strong></td>
+<td><strong>3.97</strong></td>
 </tr>
 <tr class="even">
+<td>VIXY</td>
+<td></td>
+<td>3345</td>
+<td>478</td>
+<td>3.06</td>
+<td>3088</td>
+<td>445</td>
+<td>2.66</td>
+</tr>
+<tr class="odd">
 <td>TLT</td>
 <td></td>
-<td>2226</td>
+<td>3152</td>
 <td>450</td>
-<td>-2.43</td>
-<td>2185</td>
+<td>-1.36</td>
+<td>3088</td>
 <td>445</td>
-<td>-2.76</td>
+<td>-2.35</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>SPY</td>
 <td></td>
-<td>2226</td>
+<td>3152</td>
 <td>450</td>
-<td>1.43</td>
-<td>2185</td>
+<td>2.01</td>
+<td>3088</td>
 <td>445</td>
-<td>1.93</td>
+<td>1.97</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>GLD</td>
 <td></td>
-<td>2232</td>
+<td>3162</td>
 <td>452</td>
-<td>-0.23</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td>ITA</td>
-<td></td>
-<td>3200</td>
-<td>672</td>
-<td>-0.86</td>
-<td></td>
-<td></td>
-<td></td>
+<td>-0.11</td>
+<td>3088</td>
+<td>445</td>
+<td>-1.14</td>
 </tr>
 <tr class="even">
-<td>LMT</td>
+<td>ITA</td>
 <td></td>
-<td>2951</td>
-<td>640</td>
-<td>1.04</td>
-<td></td>
-<td></td>
-<td></td>
+<td>4018</td>
+<td>672</td>
+<td>-1.00</td>
+<td>2608</td>
+<td>445</td>
+<td>-1.94</td>
 </tr>
 <tr class="odd">
+<td>LMT</td>
+<td></td>
+<td>3820</td>
+<td>640</td>
+<td>0.92</td>
+<td>2608</td>
+<td>445</td>
+<td>1.23</td>
+</tr>
+<tr class="even">
 <td>RTX</td>
 <td></td>
-<td>2876</td>
+<td>3699</td>
 <td>637</td>
-<td>0.70</td>
-<td></td>
-<td></td>
-<td></td>
+<td>0.45</td>
+<td>2608</td>
+<td>445</td>
+<td>-0.40</td>
 </tr>
 </tbody>
 </table>
-<p>Slopes for USO are 0.012 (extended) and 0.017 (regular) in log return
+<p>Slopes for USO are 0.011 (extended) and 0.017 (regular) in log return
 per unit of log-odds. Under the regular-hours definition, a contract
 moving from 50 to 73 percent during a closure predicts a 1.7 percent
 move in USO by 30 minutes after the open. The effect is present in the
-first minute of trading (USO t = 4.24 at h = 1). Overnight closures
-alone (345 clusters, t = 3.4) and weekend closures alone (100 clusters,
-t = 2.4) each replicate. The pre-closure control is insignificant for
-oil (t between -0.2 and 1.6).</p>
+first minute of trading (USO t = 4.09 at h = 1 under extended hours,
+4.41 under regular hours). Overnight closures alone (345 clusters, t =
+3.5) and weekend closures alone (100 clusters, t = 2.6) each replicate.
+The pre-closure control, the contract’s move in the twelve hours before
+the close, has t = 0.2 for USO under extended hours and 1.9 under
+regular hours; the closure slope is estimated net of it. VIXY, the
+volatility ETF, also responds (t = 3.1 extended, 2.7 regular), driven by
+the Venezuela contracts (t = 2.6) rather than the oil ones (t = 1.5 to
+1.9).</p>
 <p>Figure 1 shows the relation for Iran and Hormuz contracts as a binned
 scatter. All twenty bin means lie on the fitted line.</p>
 <figure>
@@ -326,18 +476,21 @@ points are means of twenty equal-count bins with 95 percent intervals;
 the line is the clustered OLS fit.</figcaption>
 </figure>
 <p>By category, the effect comes from the two groups of contracts about
-oil supply. Iran contracts give XLE t = 3.7 and USO t = 3.6 over 224
+oil supply. Iran contracts give XLE t = 3.7 and USO t = 3.6 over 223
 clusters. Hormuz contracts give USO t = 3.9 with a slope of 0.028 over
 105 clusters. Ukraine, Israel, Taiwan, tariff and other military
-contracts show nothing on any asset. Defense ETFs show nothing on any
-contract. Control contracts are null on every asset (largest |t|
-0.9).</p>
+contracts show nothing on oil. Venezuela contracts show nothing on oil
+but move VIXY (t = 2.6) and SPY (t = 2.3). Defense ETFs show nothing on
+any contract. Control contracts are null on every asset (largest |t|
+1.3).</p>
 <p>Two checks address the concern that both series were volatile in the
 same months. Permuting each contract’s closure moves across its own
 closures, which preserves the marginal distributions and destroys the
-pairing, leaves no asset significant (largest |t| 1.8). Regressing the
-contract’s closure move on the ETF’s return in the last hour before the
-close, the reverse direction, gives |t| below 0.8 for every asset.</p>
+pairing, leaves oil and VIXY null (USO t = 0.8, XLE 1.8, VIXY -1.0; the
+largest placebo |t| across nine assets is 2.1, on ITA, which has no real
+effect). Regressing the contract’s closure move on the ETF’s return in
+the last hour before the close, the reverse direction, gives |t| below
+1.6 for every asset.</p>
 <h3 id="trading-hours">4.2 Trading hours</h3>
 <p>Table 2 reports the signed return around Polymarket jumps that
 occurred while the ETF was open, for Iran and Hormuz contracts.</p>
@@ -425,7 +578,7 @@ minutes</h3>
 <p>Among Iran and Hormuz contract pairs with USO, Granger causality from
 oil to Polymarket is significant at 5 percent in 24 percent of pairs;
 from Polymarket to oil in 8 percent. Fisher’s combined p-value across
-all treated USO pairs is 1e-13 for oil to Polymarket and 0.045 for
+the 68 treated USO pairs is 1e-13 for oil to Polymarket and 0.06 for
 Polymarket to oil. The cross-correlation peak lag has a median of -3
 minutes for USO and -2 for XLE, where negative means oil leads (Figure
 3).</p>
@@ -439,8 +592,8 @@ and the cross-correlation lag are the cleaner reads.</p>
 USO at the next open and holding 30 minutes yields a mean of -15.4 basis
 points per trade over 283 trades (t = -2.4), with a hit rate of 47
 percent. Restricting to jumps of ten points or more does not help (-20
-bp, 90 trades). Open-hours jumps entered one minute later yield +3 bp (t
-= 0.8). Control contracts yield nothing in either case.</p>
+bp, 90 trades). Open-hours jumps entered one minute later yield +7 bp (t
+= 1.3). Control contracts yield nothing in either case.</p>
 <p>The reopen gap in Table 1 and the loss in the backtest are the same
 fact seen twice. The gap is realized at the opening print. By the first
 minute at which a trader can transact, it is priced, and the next 30
@@ -478,7 +631,7 @@ paper does not attribute any trade to any wallet. Third, the Iran
 contracts cluster in the first half of 2026 and the Hormuz contracts in
 its second quarter. The clustered standard errors treat each closure as
 one observation, but the events themselves are not independent of one
-another, and a reader who prefers to count 40 clusters rather than 445
+another, and a reader who prefers to count 50 clusters rather than 445
 closures should read the t-statistics with that in mind.</p>
 <h2 id="related-work">6. Related work</h2>
 <p>Hasbrouck (1995) and Putniņš (2013) supply the information-share
@@ -499,7 +652,7 @@ trade database that would allow the quote series here to be replaced
 with trade prints and aggressor flags. Le (2026) documents calibration
 and timestamp noise across Polymarket and Kalshi.</p>
 <h2 id="conclusion">7. Conclusion</h2>
-<p>Across 67 geopolitical contracts and 445 venue closures, Polymarket’s
+<p>Across 81 geopolitical contracts and 445 venue closures, Polymarket’s
 price moves while US markets are closed predict the oil ETF’s opening
 gap, and during trading hours oil moves first. The lead that prediction
 markets appear to have over conventional markets is the lead of a venue
@@ -535,10 +688,11 @@ hypothesis signs must be assigned at the contract level and reviewed by
 hand.</p>
 <h2 id="appendix-d.-replication">Appendix D. Replication</h2>
 <p>Code, contract list, and result tables are at
-<code>github.com/[user]/pm-leadlag</code>. Polymarket price histories
+<code>github.com/aicgoraya/pm-leadlag</code>. Polymarket price histories
 are pulled by <code>scripts/pull_polymarket.py</code> without
 authentication; ETF bars by <code>scripts/pull_polygon.py</code> with a
-free Massive key. The full battery runs in about eight minutes.</p>
+free Massive key. The full battery runs in about forty minutes on two
+cores.</p>
 <h2 id="references">References</h2>
 <p>Aktug, R. E. and Torul, O. (2026). Price discovery across political
 prediction markets: Evidence from the 2024 U.S. presidential election.

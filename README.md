@@ -3,13 +3,13 @@
 Lead-lag study between Polymarket geopolitical/military contracts and oil
 futures, defense equities, Treasuries, VIX and gold, at minute frequency.
 
-**Status (2026-10-18):** pipeline validated (13/13 synthetic tests). Real data
-pulled: 76-91 Polymarket markets at minute resolution (coverage median 99.7% of
-minutes quoted) and 9 ETFs at minute bars incl. extended hours (Massive, Oct 2024
-to Oct 2026). **First real result from the closed-hours design is in** (see
-"Preliminary results"). Full battery (event study, Granger, TE) still running.
+**Status (2026-10-18):** full battery run on 91 Polymarket markets (81
+geopolitical in 50 event clusters, 10 controls; minute resolution, coverage
+median 99.7% of minutes quoted) and 9 ETFs at minute bars incl. extended hours
+(Massive, Oct 2024 to Oct 2026). Pipeline validated on synthetic data (13/13
+tests). Paper draft v0.2 in `paper/`.
 
-## Results (full battery, 2026-10-18, 91 markets x 8 ETFs, per-market signs, artifact-filtered)
+## Results (full battery, 2026-10-18, 91 markets x 9 ETFs, per-market signs, artifact-filtered)
 
 The four designs together tell one story: **Polymarket is not faster than oil
 futures, it is open when they are closed.** Its informational edge over oil is
@@ -21,20 +21,41 @@ cluster-robust SE by closure, artifact closures removed (scripts/quick_weekend.p
 
 | asset | n | clusters | beta (log-ret per log-odds) | t | p |
 |---|---|---|---|---|---|
-| USO, 30 min | 1757 | 466 | 0.0121 | 4.17 | <1e-4 |
-| XLE, 30 min | 1836 | 485 | 0.0049 | 4.06 | <1e-4 |
-| USO, 1-min open gap | 1757 | 466 | 0.0117 | 4.24 | <1e-4 |
-| USO, weekends only | 378 | 100 | 0.0070 | 2.43 | 0.015 |
-| TLT, 30 min | 2226 | 450 | -0.0009 | -2.43 | 0.015 |
-| SPY, GLD, ITA, LMT, RTX | | | ~0 | <1.5 | n.s. |
+| USO, 30 min | 2305 | 466 | 0.0111 | 4.06 | <1e-4 |
+| XLE, 30 min | 2426 | 485 | 0.0047 | 3.75 | 0.0002 |
+| VIXY, 30 min | 3345 | 478 | 0.0064 | 3.06 | 0.002 |
+| USO, 1-min open gap | 2305 | 466 | 0.0107 | 4.09 | <1e-4 |
+| USO, weekends only | 496 | 100 | 0.0075 | 2.63 | 0.009 |
+| SPY, 30 min | 3152 | 450 | 0.0010 | 2.01 | 0.044 |
+| TLT, GLD, ITA, LMT, RTX | | | ~0 | <1.4 | n.s. |
 
-Driven by Iran (XLE t=3.7, USO t=3.6) and Hormuz (USO t=3.9, beta 0.028)
-markets. Controls null on all assets. Shuffle placebo null (|t|<1.8). Reverse
-direction (asset pre-close -> PM closure move) null (|t|<0.8). Effect present
-in the first minute of trading.
+Oil driven by Iran (XLE t=3.7, USO t=3.6, 223 clusters) and Hormuz (USO t=3.9,
+beta 0.028, 105 clusters) markets. VIXY driven by Venezuela markets (t=2.6).
+Controls null on all assets (largest |t| 1.3). Shuffle placebo: oil and VIXY
+null (|t|<1.8); largest placebo |t| across nine assets is 2.1 on ITA. Reverse
+direction (asset pre-close -> PM closure move) null (|t|<1.6). Effect present
+in the first minute of trading. Full tables: results/quick91/closure_tables.csv.
+
+### 1b. Regular-hours robustness (ETF session 09:30-16:00 ET only)
+Extended-hours bars dropped, so every overnight (~17.5 h) is a closure.
+Dedup, clustered, artifact-filtered (results/quick91_rh/closure_tables.csv):
+
+| asset | sample | n | clusters | beta | t | p |
+|---|---|---|---|---|---|---|
+| USO | all closures | 2204 | 445 | 0.0167 | 4.47 | <1e-4 |
+| XLE | all closures | 2204 | 445 | 0.0055 | 3.97 | <1e-4 |
+| VIXY | all closures | 3088 | 445 | 0.0073 | 2.66 | 0.008 |
+| USO | overnight only | 1708 | 345 | 0.0186 | 3.47 | 0.0005 |
+| XLE | overnight only | 1708 | 345 | 0.0069 | 3.41 | 0.0006 |
+| USO | weekends only | 496 | 100 | 0.0090 | 2.61 | 0.009 |
+| USO | controls | 1262 | 424 | 0.0001 | 0.02 | 0.98 |
+
+Overnight and weekend closures replicate independently. Beta is larger than
+under extended hours (0.017 vs 0.011) because pre-market trading absorbs part
+of the gap before 09:30. TLT t = -2.4 under regular hours, -1.4 extended.
 
 ### 2. Event study (asset OPEN at the PM jump): who moves first?
-Signed CAR in bp around 1,8xx PM jumps during ETF hours, Iran+oil markets,
+Signed CAR in bp around PM jumps during ETF hours, Iran+oil markets (35 markets),
 t across markets:
 
 | | -15 min | -5 | +1 | +5 | +15 | +30 |
@@ -57,7 +78,7 @@ Fraction of (market, asset) pairs significant at 5%, Iran+oil:
 | XLE | 0.14 | 0.22 | 0.35 | 0.19 | -2 |
 | SPY | 0.05 | 0.19 | 0.35 | 0.27 | -4 |
 
-Fisher-combined over treated USO pairs: asset->PM p=1e-13 vs PM->asset p=0.045.
+Fisher-combined over 68 treated USO pairs: asset->PM p=1e-13 vs PM->asset p=0.06.
 Consistent with the event study: in overlapping hours the causal arrow runs
 oil -> Polymarket, at a 2-4 minute lag. (TE fractions are inflated by sparse
 PM updates; Granger and xcorr are the cleaner read.)
@@ -65,7 +86,7 @@ PM updates; Granger and xcorr are the cleaner read.)
 ### 4. Tradability
 Rule: follow each closed-hours PM jump into USO at the next open, hold 30 min,
 1 bp/side. Iran+oil, n=283: **mean -15 bp/trade, t=-2.4, hit rate 47%.**
-Open-hours jumps, enter 1 min later: USO +3 bp, t=0.8, n.s. Larger jumps
+Open-hours jumps, enter 1 min later: USO +7 bp, t=1.3, n.s. Larger jumps
 (|dp|>=0.10) do not help (-20 bp, n=90). **Not tradable.** The reopen gap in
 design 1 happens at the opening print; by the first tradable minute it is
 priced and the next 30 min mean-revert.
@@ -79,7 +100,7 @@ priced and the next 30 min mean-revert.
 - Net: prediction-market prices are a *real-time nowcast of what oil will do
   at the open*, usable for risk/positioning before the open, not a signal to
   trade after it. This is the Aktug-Torul election-night observation
-  generalized across ~40 geopolitical events and reversed in overlapping hours.
+  generalized across 50 geopolitical event clusters and reversed in overlapping hours.
 - Still open: whether closed-hours PM moves reflect public overnight news that
   oil couldn't trade on, or non-public information (the ACDC/Bloomberg
   insider cases). headlines_template.csv is the path; not done.
@@ -172,6 +193,9 @@ scripts/
   build_events.py     clean events_raw.csv -> events.csv (fixes bad endDates)
   assign_signs.py     per-market escalation sign + per-asset hypothesis signs (sign_* cols)
   quick_weekend.py    fast closed-hours regressions + placebo + reverse check (~15 min)
+  closure_tables.py   artifact filter, dedup, closed-hours tables used in the paper
+  assign_signs.py     per-market escalation and asset signs into events.csv
+  make_figures.py     paper figures from results/
   pull_polymarket.py  minute price history for every event (no auth)
   pull_databento.py   futures + equities minute bars (needs API key; --estimate first)
   pull_polygon.py     free ETF fallback (USO/ITA/LMT/RTX/GLD/TLT/SPY/XLE/VIXY)
@@ -200,8 +224,17 @@ pytest -q                   # should print 13 passed (~50 s)
    - Massive (formerly Polygon.io) free tier (ETFs only, 2-year lookback, 5 req/min, ~25 min):
      `python scripts/pull_polygon.py 2024-10-01 2026-10-01 data/raw/polygon`
      Use ETF proxies (USO≈CL, GLD≈GC, TLT≈ZB, SPY≈ES, VIXY≈VX) and say so.
-3. **Run:**
-   `python scripts/run_analysis.py data/events.csv data/raw/polymarket data/raw/databento results/`
+3. **Run** (about 40 min each on two cores):
+   ```
+   python scripts/assign_signs.py data/events.csv
+   python scripts/run_analysis.py data/events.csv data/raw/polymarket data/raw/polygon results/full
+   python scripts/run_analysis.py data/events.csv data/raw/polymarket data/raw/polygon results/full_rh --regular-hours
+   python scripts/quick_weekend.py data/events.csv data/raw/polymarket data/raw/polygon results/quick
+   python scripts/closure_tables.py results/quick
+   python scripts/quick_weekend.py data/events.csv data/raw/polymarket data/raw/polygon results/quick_rh --regular-hours
+   python scripts/closure_tables.py results/quick_rh
+   python scripts/make_figures.py results paper
+   ```
 4. **Headline timestamps** (manual, ~3-4 h, the most important data step):
    for every jump in `results/jumps.csv` with |dp| ≥ 0.05, find the earliest
    public timestamp of the underlying news and fill `data/headlines.csv`

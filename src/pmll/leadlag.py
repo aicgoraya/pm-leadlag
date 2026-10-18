@@ -199,6 +199,10 @@ def battery(ov: pd.DataFrame, maxlag: int = 5, te_lag: int = 1, te_kw: dict | No
     g = granger_both(ov["d_logit"], ov["r_asset"], maxlag)
     te = transfer_entropy_both(ov["d_logit"], ov["r_asset"], te_lag, **(te_kw or {}))
     xc = cross_correlation(ov["d_logit"], ov["r_asset"], lags=15)
+    if xc.isna().all():  # constant series on the overlap
+        peak_lag, peak = np.nan, np.nan
+    else:
+        peak_lag, peak = int(xc.abs().idxmax()), float(xc.loc[xc.abs().idxmax()])
     return {
         "granger_pm_to_asset_p": g.loc["p", "pm_to_asset"],
         "granger_asset_to_pm_p": g.loc["p", "asset_to_pm"],
@@ -208,7 +212,7 @@ def battery(ov: pd.DataFrame, maxlag: int = 5, te_lag: int = 1, te_kw: dict | No
         "te_pm_to_asset_p": te.loc["p", "pm_to_asset"],
         "te_asset_to_pm": te.loc["te", "asset_to_pm"],
         "te_asset_to_pm_p": te.loc["p", "asset_to_pm"],
-        "xcorr_peak_lag": int(xc.abs().idxmax()),
-        "xcorr_peak": float(xc.loc[xc.abs().idxmax()]),
+        "xcorr_peak_lag": peak_lag,
+        "xcorr_peak": peak,
         "n": int(len(ov)),
     }
