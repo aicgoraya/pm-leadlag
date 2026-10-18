@@ -1,0 +1,43 @@
+/Users/abdullahgoraya/Documents/pm-leadlag/src/pmll/leadlag.py:62: SingularMatrixWarning: The design matrix is rank-deficient. The model parameters are not uniquely determined.
+  res = sm.OLS(Y, Xm).fit(cov_type="HAC", cov_kwds={"maxlags": hac})
+/Users/abdullahgoraya/Documents/pm-leadlag/src/pmll/leadlag.py:67: ValueWarning: covariance of constraints does not have full rank. The number of constraints is 5, but rank is 0
+  w = res.wald_test(R, use_f=True, scalar=True)
+/Users/abdullahgoraya/Documents/pm-leadlag/.venv/lib/python3.14/site-packages/statsmodels/base/model.py:2140: RuntimeWarning: invalid value encountered in divide
+  F /= J
+/Users/abdullahgoraya/Documents/pm-leadlag/src/pmll/leadlag.py:62: SingularMatrixWarning: The design matrix is rank-deficient. The model parameters are not uniquely determined.
+  res = sm.OLS(Y, Xm).fit(cov_type="HAC", cov_kwds={"maxlags": hac})
+/Users/abdullahgoraya/Documents/pm-leadlag/src/pmll/leadlag.py:67: ValueWarning: covariance of constraints does not have full rank. The number of constraints is 5, but rank is 0
+  w = res.wald_test(R, use_f=True, scalar=True)
+/Users/abdullahgoraya/Documents/pm-leadlag/.venv/lib/python3.14/site-packages/statsmodels/base/model.py:2140: RuntimeWarning: invalid value encountered in divide
+  F /= J
+/Users/abdullahgoraya/Documents/pm-leadlag/.venv/lib/python3.14/site-packages/numpy/lib/_function_base_impl.py:3037: RuntimeWarning: invalid value encountered in divide
+  c /= stddev[:, None]
+/Users/abdullahgoraya/Documents/pm-leadlag/.venv/lib/python3.14/site-packages/numpy/lib/_function_base_impl.py:3038: RuntimeWarning: invalid value encountered in divide
+  c /= stddev[None, :]
+asset GLD: 345,817 open minutes (incl. extended hours)
+asset ITA: 173,021 open minutes (incl. extended hours)
+asset LMT: 200,859 open minutes (incl. extended hours)
+asset RTX: 208,857 open minutes (incl. extended hours)
+asset SPY: 431,506 open minutes (incl. extended hours)
+asset TLT: 364,916 open minutes (incl. extended hours)
+asset USO: 312,257 open minutes (incl. extended hours)
+unknown symbol, skipping: VIXY
+asset XLE: 267,399 open minutes (incl. extended hours)
+Traceback (most recent call last):
+  File "/Users/abdullahgoraya/Documents/pm-leadlag/scripts/run_analysis.py", line 139, in <module>
+    regs = []
+  File "/Users/abdullahgoraya/Documents/pm-leadlag/scripts/run_analysis.py", line 102, in main
+    if df.empty:
+            ^^^^
+  File "/Users/abdullahgoraya/Documents/pm-leadlag/src/pmll/leadlag.py", line 203, in battery
+    "granger_pm_to_asset_p": g.loc["p", "pm_to_asset"],
+                          ^^^^^^^^^^^^^^^^^
+  File "/Users/abdullahgoraya/Documents/pm-leadlag/.venv/lib/python3.14/site-packages/pandas/core/series.py", line 2545, in idxmax
+    iloc = self.argmax(axis, skipna, *args, **kwargs)
+  File "/Users/abdullahgoraya/Documents/pm-leadlag/.venv/lib/python3.14/site-packages/pandas/core/base.py", line 814, in argmax
+    result = nanops.nanargmax(delegate, skipna=skipna)
+  File "/Users/abdullahgoraya/Documents/pm-leadlag/.venv/lib/python3.14/site-packages/pandas/core/nanops.py", line 1170, in nanargmax
+    result = _maybe_arg_null_out(result, axis, mask, skipna)  # type: ignore[arg-type]
+  File "/Users/abdullahgoraya/Documents/pm-leadlag/.venv/lib/python3.14/site-packages/pandas/core/nanops.py", line 1485, in _maybe_arg_null_out
+    raise ValueError("Encountered all NA values")
+ValueError: Encountered all NA values
