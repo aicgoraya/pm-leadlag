@@ -40,26 +40,34 @@ class ESConfig:
     seed: int = 0
 
 
-def _car_at(close: pd.Series, open_mkt: pd.Series, t0: pd.Timestamp, h: int, pre: int) -> float:
-    """Signed window return around the jump, counting only open minutes.
-
-    h >= 0: return from anchor (t0 - pre) forward to t0 + h   [post-window]
-    h <  0: return from t0 + h forward to anchor (t0 - pre)   [pre-window]
-    Both are forward-in-time returns, so a positive value always means the
-    asset rose over that window.
-    """
+def _open_positions(close: pd.Series, open_mkt: pd.Series):
+    """Arrays of open-minute timestamps and their log closes, plus a ts->pos map."""
     opens = close.index[open_mkt.to_numpy()]
-    if t0 not in opens:
-        return np.nan
-    i = opens.get_loc(t0)
+    logc = np.log(close.loc[opens].to_numpy(dtype=float))
+    pos = pd.Series(np.arange(len(opens)), index=opens)
+    return opens, logc, pos
+
+
+def _car_vec(logc: np.ndarray, i: np.ndarray, h: int, pre: int) -> np.ndarray:
+    """Vectorised window return for event positions i (into open-minute array)."""
+    n = len(logc)
     a = i - pre
     if h >= 0:
         j0, j1 = a, i + h
     else:
         j0, j1 = i + h, a
-    if j0 < 0 or j1 >= len(opens) or j1 <= j0:
+    ok = (j0 >= 0) & (j1 < n) & (j1 > j0)
+    out = np.full(len(i), np.nan)
+    out[ok] = logc[j1[ok]] - logc[j0[ok]]
+    return out
+
+
+def _car_at(close: pd.Series, open_mkt: pd.Series, t0: pd.Timestamp, h: int, pre: int) -> float:
+    """Scalar wrapper kept for tests/back-compat."""
+    opens, logc, pos = _open_positions(close, open_mkt)
+    if t0 not in pos.index:
         return np.nan
-    return float(np.log(close.loc[opens[j1]]) - np.log(close.loc[opens[j0]]))
+    return float(_car_vec(logc, np.array([pos.loc[t0]]), h, pre)[0])
 
 
 def event_cars(aligned: pd.DataFrame, jumps: pd.DataFrame, hyp_sign: int,
@@ -71,17 +79,17 @@ def event_cars(aligned: pd.DataFrame, jumps: pd.DataFrame, hyp_sign: int,
     Returns rows per jump, columns car_{h} already signed so positive = as hypothesised.
     """
     cfg = cfg or ESConfig()
-    close, open_mkt = aligned["close"], aligned["open_mkt"]
-    rows = []
-    for t0, j in jumps.iterrows():
-        if t0 not in aligned.index or not bool(open_mkt.loc[t0]):
-            continue
-        sign = int(j["direction"]) * hyp_sign
-        row = {"ts": t0, "dp": j["dp"], "sign": sign}
-        for h in cfg.horizons:
-            row[f"car_{h}"] = sign * _car_at(close, open_mkt, t0, h, cfg.pre)
-        rows.append(row)
-    return pd.DataFrame(rows).set_index("ts") if rows else pd.DataFrame()
+    opens, logc, pos = _open_positions(aligned["close"], aligned["open_mkt"])
+    jj = jumps[jumps.index.isin(pos.index)]
+    if jj.empty:
+        return pd.DataFrame()
+    i = pos.loc[jj.index].to_numpy()
+    sign = jj["direction"].to_numpy().astype(int) * hyp_sign
+    out = pd.DataFrame({"dp": jj["dp"].to_numpy(), "sign": sign}, index=jj.index)
+    for h in cfg.horizons:
+        out[f"car_{h}"] = sign * _car_vec(logc, i, h, cfg.pre)
+    out.index.name = "ts"
+    return out
 
 
 def placebo_cars(aligned: pd.DataFrame, n: int, cfg: ESConfig | None = None,
@@ -89,24 +97,24 @@ def placebo_cars(aligned: pd.DataFrame, n: int, cfg: ESConfig | None = None,
     """Random open minutes (not near real jumps) with random sign -> null CARs."""
     cfg = cfg or ESConfig()
     rng = np.random.default_rng(cfg.seed)
-    opens = aligned.index[aligned["open_mkt"].to_numpy()]
+    opens, logc, pos = _open_positions(aligned["close"], aligned["open_mkt"])
+    keep = np.ones(len(opens), dtype=bool)
     if exclude is not None and len(exclude):
-        bad = np.zeros(len(opens), dtype=bool)
-        for t in exclude:
-            bad |= (np.abs((opens - t).total_seconds()) <= exclude_radius * 60)
-        opens = opens[~bad]
-    if len(opens) == 0:
+        ex = pd.DatetimeIndex(exclude)
+        # mark open positions within radius of any excluded ts
+        for t in ex:
+            lo, hi = opens.searchsorted(t - pd.Timedelta(minutes=exclude_radius)), opens.searchsorted(t + pd.Timedelta(minutes=exclude_radius), side="right")
+            keep[lo:hi] = False
+    cand = np.flatnonzero(keep)
+    if len(cand) == 0:
         return pd.DataFrame()
-    picks = rng.choice(opens, size=min(n, len(opens)), replace=len(opens) < n)
-    signs = rng.choice([-1, 1], size=len(picks))
-    close, open_mkt = aligned["close"], aligned["open_mkt"]
-    rows = []
-    for t0, s in zip(picks, signs):
-        row = {"ts": t0, "sign": s}
-        for h in cfg.horizons:
-            row[f"car_{h}"] = s * _car_at(close, open_mkt, pd.Timestamp(t0), h, cfg.pre)
-        rows.append(row)
-    return pd.DataFrame(rows).set_index("ts")
+    i = rng.choice(cand, size=min(n, len(cand)), replace=len(cand) < n)
+    signs = rng.choice([-1, 1], size=len(i))
+    out = pd.DataFrame({"sign": signs}, index=opens[i])
+    for h in cfg.horizons:
+        out[f"car_{h}"] = signs * _car_vec(logc, i, h, cfg.pre)
+    out.index.name = "ts"
+    return out
 
 
 def summarize(cars: pd.DataFrame, placebo: pd.DataFrame | None = None) -> pd.DataFrame:
@@ -124,8 +132,10 @@ def summarize(cars: pd.DataFrame, placebo: pd.DataFrame | None = None) -> pd.Dat
             # p-value: fraction of placebo *means over n draws* exceeding observed mean
             # approximate via bootstrap of placebo sample means of size len(x)
             rng = np.random.default_rng(0)
-            B = 2000
+            B = 500
             means = np.array([rng.choice(null.to_numpy(), size=len(x), replace=True).mean() for _ in range(B)])
             r["p_placebo"] = float(np.mean(means >= x.mean()))
         rows.append(r)
+    if not rows:
+        return pd.DataFrame(columns=["n", "mean_bp", "median_bp", "t", "p_t", "p_placebo"]).rename_axis("horizon")
     return pd.DataFrame(rows).set_index("horizon")

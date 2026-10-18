@@ -65,16 +65,34 @@ def main(events_csv, pm_dir, bars_dir, out_dir, regular_hours_only=False):
 
     jump_rows, es_rows, ll_rows, wk_rows, bt_trades = [], [], [], [], []
 
+    # pass 1: detect jumps on every market, flag cross-market artifacts
+    all_j = []
+    pm_cache = {}
     for _, r in ev.iterrows():
-        cid, cat = r["conditionId"], r["category"]
-        gf = pm_dir / f"{cid}.grid.parquet"
+        gf = pm_dir / f"{r['conditionId']}.grid.parquet"
         if not gf.exists():
             continue
-        pm = pd.read_parquet(gf)
-        j = jumps.detect(pm)
-        if j.empty:
+        pm_cache[r["conditionId"]] = pd.read_parquet(gf)
+        j = jumps.detect(pm_cache[r["conditionId"]])
+        if len(j):
+            j = j.reset_index(); j["conditionId"] = r["conditionId"]; all_j.append(j)
+    all_j = pd.concat(all_j, ignore_index=True) if all_j else pd.DataFrame()
+    if len(all_j):
+        all_j["artifact"] = jumps.flag_artifacts(all_j)
+        print(f"jumps: {len(all_j)} total, {int(all_j['artifact'].sum())} flagged as artifacts")
+        all_j = all_j[~all_j["artifact"]]
+    jumps_by_cid = {c: g.set_index("ts") for c, g in all_j.groupby("conditionId")} if len(all_j) else {}
+
+    for _, r in ev.iterrows():
+        cid, cat = r["conditionId"], r["category"]
+        if cid not in pm_cache or cid not in jumps_by_cid:
             continue
-        hyp = HYPOTHESES.get(cat, {}) or {s: +1 for s in assets}
+        pm = pm_cache[cid]
+        j = jumps_by_cid[cid]
+        # per-market signs from events.csv (assign_signs.py); fall back to category dict
+        hyp = {s: int(r[f"sign_{s}"]) for s in assets if f"sign_{s}" in r and int(r[f"sign_{s}"]) != 0}
+        if not hyp:
+            hyp = HYPOTHESES.get(cat, {}) or {s: +1 for s in assets}
         for sym, sign in hyp.items():
             if sym not in assets:
                 continue
@@ -92,14 +110,14 @@ def main(events_csv, pm_dir, bars_dir, out_dir, regular_hours_only=False):
             # event study
             cars = eventstudy.event_cars(df, jj, sign)
             if len(cars) >= 3:
-                plc = eventstudy.placebo_cars(df, n=1000, exclude=jj.index)
+                plc = eventstudy.placebo_cars(df, n=300, exclude=jj.index)
                 summ = eventstudy.summarize(cars, plc)
                 for h, s in summ.iterrows():
                     es_rows.append({"conditionId": cid, "category": cat, "asset": sym, "horizon": h, **s})
             # lead-lag on overlap
             ov = align.overlap(df, max_stale=30)
             if len(ov) > 500:
-                b = leadlag.battery(ov)
+                b = leadlag.battery(ov, te_kw={'n_surrogates': 100})
                 ll_rows.append({"conditionId": cid, "category": cat, "asset": sym, **b})
             # weekend design
             tbl = weekend.closure_table(pm, ag, venue, min_minutes=24 * 60, hyp_sign=sign)

@@ -106,19 +106,26 @@ def _discretise(s: np.ndarray, bins: int) -> np.ndarray:
     return out
 
 
-def _te(xd: np.ndarray, yd: np.ndarray, lag: int) -> float:
-    """TE_{x->y} = H(y_t|y_{t-lag}) - H(y_t|y_{t-lag}, x_{t-lag}) via plug-in."""
-    yt = yd[lag:]
-    yp = yd[:-lag]
-    xp = xd[:-lag]
+def _entropy_counts(keys: np.ndarray) -> float:
+    counts = np.bincount(keys)
+    counts = counts[counts > 0]
+    p = counts / counts.sum()
+    return float(-(p * np.log(p)).sum())
 
-    def H(*cols):
-        keys = np.stack(cols, axis=1)
-        _, counts = np.unique(keys, axis=0, return_counts=True)
-        p = counts / counts.sum()
-        return -(p * np.log(p)).sum()
 
-    return H(yt, yp) - H(yp) - (H(yt, yp, xp) - H(yp, xp))
+def _te(xd: np.ndarray, yd: np.ndarray, lag: int, nb: int | None = None) -> float:
+    """TE_{x->y} = H(y_t,y_{t-lag}) - H(y_{t-lag}) - H(y_t,y_{t-lag},x_{t-lag}) + H(y_{t-lag},x_{t-lag}).
+
+    Symbols are small ints; joint states are encoded as a single int so each
+    entropy is one bincount. ~100x faster than np.unique(axis=0).
+    """
+    nb = nb or int(max(xd.max(), yd.max()) + 1)
+    yt, yp, xp = yd[lag:], yd[:-lag], xd[:-lag]
+    H_yt_yp = _entropy_counts(yt * nb + yp)
+    H_yp = _entropy_counts(yp)
+    H_yt_yp_xp = _entropy_counts((yt * nb + yp) * nb + xp)
+    H_yp_xp = _entropy_counts(yp * nb + xp)
+    return H_yt_yp - H_yp - (H_yt_yp_xp - H_yp_xp)
 
 
 def transfer_entropy(x: pd.Series, y: pd.Series, lag: int = 1, bins: int = 4,
@@ -129,9 +136,10 @@ def transfer_entropy(x: pd.Series, y: pd.Series, lag: int = 1, bins: int = 4,
         return {"te": np.nan, "p": np.nan, "n": len(df)}
     xd = _discretise(df["x"].to_numpy(), bins)
     yd = _discretise(df["y"].to_numpy(), bins)
-    te = _te(xd, yd, lag)
+    nb = int(max(xd.max(), yd.max()) + 1)
+    te = _te(xd, yd, lag, nb)
     rng = np.random.default_rng(seed)
-    null = np.array([_te(rng.permutation(xd), yd, lag) for _ in range(n_surrogates)])
+    null = np.array([_te(rng.permutation(xd), yd, lag, nb) for _ in range(n_surrogates)])
     return {"te": float(te), "p": float(np.mean(null >= te)), "te_null_mean": float(null.mean()),
             "n": int(len(df)), "lag": lag}
 
@@ -187,9 +195,9 @@ def hasbrouck_info_share(p1: pd.Series, p2: pd.Series, k_ar_diff: int = 5) -> di
 # --------------------------------------------------------------------------
 # Convenience: run the standard battery on one aligned overlap frame
 # --------------------------------------------------------------------------
-def battery(ov: pd.DataFrame, maxlag: int = 5, te_lag: int = 1) -> dict:
+def battery(ov: pd.DataFrame, maxlag: int = 5, te_lag: int = 1, te_kw: dict | None = None) -> dict:
     g = granger_both(ov["d_logit"], ov["r_asset"], maxlag)
-    te = transfer_entropy_both(ov["d_logit"], ov["r_asset"], te_lag)
+    te = transfer_entropy_both(ov["d_logit"], ov["r_asset"], te_lag, **(te_kw or {}))
     xc = cross_correlation(ov["d_logit"], ov["r_asset"], lags=15)
     return {
         "granger_pm_to_asset_p": g.loc["p", "pm_to_asset"],
