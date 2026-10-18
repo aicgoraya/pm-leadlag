@@ -5,3 +5,7 @@ data/raw/
 results/
 *.parquet
 data/POLYGON_API_KEY.txt
+RUN_ME*
+*.log
+*.bundle
+.venv/
