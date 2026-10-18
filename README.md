@@ -9,45 +9,86 @@ minutes quoted) and 9 ETFs at minute bars incl. extended hours (Massive, Oct 202
 to Oct 2026). **First real result from the closed-hours design is in** (see
 "Preliminary results"). Full battery (event study, Granger, TE) still running.
 
-## Preliminary results (closed-hours design, 2026-10-18)
+## Results (full battery, 2026-10-18, 91 markets x 8 ETFs, per-market signs, artifact-filtered)
 
-When Polymarket odds on Iran / Strait-of-Hormuz events move while US equity
-markets are closed, oil ETFs gap in the predicted direction at the open.
+The four designs together tell one story: **Polymarket is not faster than oil
+futures, it is open when they are closed.** Its informational edge over oil is
+about trading hours, not speed, and it is not tradable at the open.
 
-Pooled over all geopolitical markets, one row per event cluster per closure,
-per-market signs (scripts/assign_signs.py), cluster-robust SE by closure,
-artifact closures removed (see "Data artifacts"):
+### 1. Closed-hours design (PM moves while ETF closed -> reopen gap)
+Pooled over geopolitical markets, one row per event cluster per closure,
+cluster-robust SE by closure, artifact closures removed (scripts/quick_weekend.py):
 
 | asset | n | clusters | beta (log-ret per log-odds) | t | p |
 |---|---|---|---|---|---|
 | USO, 30 min | 1757 | 466 | 0.0121 | 4.17 | <1e-4 |
 | XLE, 30 min | 1836 | 485 | 0.0049 | 4.06 | <1e-4 |
-| USO, 1 min (open gap) | 1757 | 466 | 0.0117 | 4.24 | <1e-4 |
+| USO, 1-min open gap | 1757 | 466 | 0.0117 | 4.24 | <1e-4 |
 | USO, weekends only | 378 | 100 | 0.0070 | 2.43 | 0.015 |
-| XLE, weekends only | 379 | 100 | 0.0026 | 1.96 | 0.050 |
 | TLT, 30 min | 2226 | 450 | -0.0009 | -2.43 | 0.015 |
 | SPY, GLD, ITA, LMT, RTX | | | ~0 | <1.5 | n.s. |
 
-Source: Iran markets (XLE t=3.7, USO t=3.6, 224 clusters) and Hormuz markets
-(USO t=3.9, XLE t=3.7, 105 clusters; beta 0.028 on USO, i.e. a 50%->73% move
-predicts ~2.8% on USO at the open). Nothing from Ukraine, Israel, Taiwan,
-tariffs, other military. Controls (sports/entertainment) null on every asset.
+Driven by Iran (XLE t=3.7, USO t=3.6) and Hormuz (USO t=3.9, beta 0.028)
+markets. Controls null on all assets. Shuffle placebo null (|t|<1.8). Reverse
+direction (asset pre-close -> PM closure move) null (|t|<0.8). Effect present
+in the first minute of trading.
 
-Checks passed:
-- Shuffle placebo (permute each market's closure moves across its own closures): all |t|<1.8.
-- Reverse direction (asset return in last 60 open minutes -> PM closure move): all |t|<0.8.
-- Pre-closure PM move as control: insignificant for oil (t_pre ~ -0.2).
-- Effect present at first minute of trading, not accumulated over the morning.
-- Robust to dropping artifact closures (see below).
+### 2. Event study (asset OPEN at the PM jump): who moves first?
+Signed CAR in bp around 1,8xx PM jumps during ETF hours, Iran+oil markets,
+t across markets:
 
-What it does NOT show: whether PM aggregated public overnight news that oil
-couldn't trade on, or absorbed non-public information. The headline-timestamp
-step (data/headlines_template.csv, 353 jumps >=10pt on treated markets, 196
-during closed hours) separates those. Not done yet.
+| | -15 min | -5 | +1 | +5 | +15 | +30 |
+|---|---|---|---|---|---|---|
+| USO bp | **41.7** | 19.6 | 2.5 | 5.5 | 8.6 | 12.0 |
+| USO t | **6.3** | 5.3 | 1.6 | 2.0 | 2.3 | 3.2 |
+| XLE bp | 9.6 | 4.9 | 0.9 | 3.7 | 5.2 | 8.5 |
+| XLE t | 5.1 | 4.2 | 1.1 | 3.8 | 3.6 | 4.4 |
 
-Earlier pass with category-level signs produced a spurious defense-stock
-result (RTX t=3.0) because ceasefire and strike markets were coded the same
-direction; it vanished once signs were per-market. Keep signs per market.
+Oil has already moved 42 bp in the 15 minutes BEFORE the PM jump, vs 12 bp in
+the 30 minutes after. During trading hours, **oil moves first and Polymarket
+catches up**. Controls: pre-window ~0.
+
+### 3. Granger / transfer entropy on overlap minutes (asset open, PM quote fresh)
+Fraction of (market, asset) pairs significant at 5%, Iran+oil:
+
+| asset | Granger PM->asset | Granger asset->PM | TE PM->asset | TE asset->PM | median xcorr peak lag |
+|---|---|---|---|---|---|
+| USO | 0.08 | **0.24** | 0.35 | **0.46** | **-3 min** (oil leads) |
+| XLE | 0.14 | 0.22 | 0.35 | 0.19 | -2 |
+| SPY | 0.05 | 0.19 | 0.35 | 0.27 | -4 |
+
+Fisher-combined over treated USO pairs: asset->PM p=1e-13 vs PM->asset p=0.045.
+Consistent with the event study: in overlapping hours the causal arrow runs
+oil -> Polymarket, at a 2-4 minute lag. (TE fractions are inflated by sparse
+PM updates; Granger and xcorr are the cleaner read.)
+
+### 4. Tradability
+Rule: follow each closed-hours PM jump into USO at the next open, hold 30 min,
+1 bp/side. Iran+oil, n=283: **mean -15 bp/trade, t=-2.4, hit rate 47%.**
+Open-hours jumps, enter 1 min later: USO +3 bp, t=0.8, n.s. Larger jumps
+(|dp|>=0.10) do not help (-20 bp, n=90). **Not tradable.** The reopen gap in
+design 1 happens at the opening print; by the first tradable minute it is
+priced and the next 30 min mean-revert.
+
+### Interpretation (for the paper)
+- When both venues trade, oil futures/ETFs impound geopolitical news 2-4 min
+  before Polymarket. Polymarket is a follower in continuous time.
+- When ETFs are closed (nights, weekends), Polymarket keeps pricing. The
+  accumulated move predicts the reopen gap with t>4, but the gap is realized
+  at the open and cannot be captured afterwards.
+- Net: prediction-market prices are a *real-time nowcast of what oil will do
+  at the open*, usable for risk/positioning before the open, not a signal to
+  trade after it. This is the Aktug-Torul election-night observation
+  generalized across ~40 geopolitical events and reversed in overlapping hours.
+- Still open: whether closed-hours PM moves reflect public overnight news that
+  oil couldn't trade on, or non-public information (the ACDC/Bloomberg
+  insider cases). headlines_template.csv is the path; not done.
+
+### What changed from the first pass
+Category-level signs produced a spurious defense-stock result (RTX t=3.0)
+because ceasefire and strike markets were coded the same direction. Per-market
+signs (assign_signs.py) removed it and moved everything to oil. Keep signs per
+market; review that file by hand.
 
 ## Data artifacts found
 
