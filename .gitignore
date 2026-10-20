@@ -9,3 +9,4 @@ RUN_ME*
 *.log
 *.bundle
 .venv/
+.DS_Store
